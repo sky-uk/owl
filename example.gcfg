@@ -1,0 +1,10 @@
+[default]
+time=60
+
+[service "kube-apiserver"]
+include=: E
+
+[service "kube-controller-manager"]
+include=: E
+exclude=is forbidden: unable to admit pod without exceeding quota for resource memory
+exclude=cat
