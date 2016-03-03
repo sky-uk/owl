@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"github.com/coreos/go-systemd/sdjournal"
 	"github.com/scalingdata/gcfg"
+	"os"
 	"strings"
 	"time"
-	"os"
 )
 
 type Default struct {
@@ -67,7 +67,7 @@ func included(logMessage string, includes []string) bool {
 }
 
 func excluded(logMessage string, excludes []string) bool {
-		for _, exclude := range excludes {
+	for _, exclude := range excludes {
 		if strings.Contains(logMessage, exclude) {
 			return true
 		}
@@ -86,12 +86,12 @@ type JournalCtrl struct {
 func (this JournalCtrl) Logs(unit string) (string, error) {
 	timeout := time.Duration(1) * time.Second
 	r, err := sdjournal.NewJournalReader(sdjournal.JournalReaderConfig{
-		Since:   time.Duration(-this.duration) * time.Second,
+		Since: time.Duration(-this.duration) * time.Second,
 		Matches: []sdjournal.Match{
-		{
-			Field: sdjournal.SD_JOURNAL_FIELD_SYSTEMD_UNIT,
-			Value: unit,
-		},
+			{
+				Field: sdjournal.SD_JOURNAL_FIELD_SYSTEMD_UNIT,
+				Value: unit,
+			},
 		},
 	})
 	if err != nil {
