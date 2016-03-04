@@ -19,7 +19,7 @@ func TestCheckErrors(t *testing.T) {
 	var services = map[string]*Service{
 		"kube-apiserver": &Service{},
 	}
-	config := Config{Default{Time: 5}, services}
+	config := Config{Global{Time: 5}, services}
 	journalCtrl := new(MockJournalCtl)
 	journalCtrl.On("Logs", "kube-apiserver").Return("error1\nerror2")
 
@@ -32,7 +32,7 @@ func TestCheckErrorsIncludeFilter(t *testing.T) {
 	var services = map[string]*Service{
 		"kube-apiserver": &Service{Include: []string{": E"}},
 	}
-	config := Config{Default{Time: 5}, services}
+	config := Config{Global{Time: 5}, services}
 	journalCtrl := new(MockJournalCtl)
 	journalCtrl.On("Logs", "kube-apiserver").Return(": E error1\nerror2")
 
@@ -45,7 +45,7 @@ func TestCheckErrorsExcludeFilter(t *testing.T) {
 	var services = map[string]*Service{
 		"kube-apiserver": &Service{Include: []string{": E"}, Exclude: []string{"stupid error"}},
 	}
-	config := Config{Default{Time: 5}, services}
+	config := Config{Global{Time: 5}, services}
 	journalCtrl := new(MockJournalCtl)
 	journalCtrl.On("Logs", "kube-apiserver").Return(": E error1\nerror2\n: E stupid error")
 
@@ -55,7 +55,7 @@ func TestCheckErrorsExcludeFilter(t *testing.T) {
 }
 
 func TestReportErrorsLimitsErrors(t *testing.T) {
-	config := Config{Default{Time: 5, ErrorsToReport: 1}, map[string]*Service{
+	config := Config{Global{Time: 5, ErrorsToReport: 1}, map[string]*Service{
 		"kube-apiserver": &Service{Include: []string{": E"}, Exclude: []string{"stupid error"}},
 	}}
 
@@ -66,7 +66,7 @@ func TestReportErrorsLimitsErrors(t *testing.T) {
 }
 
 func TestReportErrorsHandlesLessErrorsThanConfigured(t *testing.T) {
-	config := Config{Default{Time: 5, ErrorsToReport: 5}, map[string]*Service{}}
+	config := Config{Global{Time: 5, ErrorsToReport: 5}, map[string]*Service{}}
 
 	errors := []string{"error 1", "error 2", "error 3"}
 	report := ReportErrors(config, errors)

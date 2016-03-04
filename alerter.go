@@ -10,10 +10,10 @@ import (
 	"time"
 )
 
-type Default struct {
-	Time int
+type Global struct {
+	Time           int
 	ErrorsToReport int
-	FatalNumberOfErrors int
+	AlertThreshold int
 }
 
 type Service struct {
@@ -22,7 +22,7 @@ type Service struct {
 }
 
 type Config struct {
-	Default Default
+	Global  Global
 	Service map[string]*Service
 }
 
@@ -34,26 +34,44 @@ func main() {
 		return
 	}
 
-	var logLoader = JournalCtrl{duration: config.Default.Time}
+	var logLoader = JournalCtrl{duration: config.Global.Time}
 	errors := CheckErrors(config, logLoader)
 	report := ReportErrors(config, errors)
 	for _, element := range report {
 		fmt.Println(element)
 	}
-	if len(errors) > config.Default.FatalNumberOfErrors {
+	if len(errors) > config.Global.AlertThreshold {
 		os.Exit(-1)
 	}
 }
 
+func CheckErrors(config Config, logLoader LogLoader) []string {
+	errors := make([]string, 0, 0)
+	for serviceName, filters := range config.Service {
+		logs, err := logLoader.Logs(serviceName)
+		if err != nil {
+			fmt.Println("Unable to get logs for service %v, error %v", serviceName, err)
+			continue
+		}
+		splitLogs := strings.Split(logs, "\n")
+		for _, logMessage := range splitLogs {
+			if included(logMessage, filters.Include) && !excluded(logMessage, filters.Exclude) {
+				errors = append(errors, logMessage)
+			}
+		}
+	}
+	return errors
+}
+
 func ReportErrors(config Config, errors []string) []string {
-	size := config.Default.ErrorsToReport + 1
+	size := config.Global.ErrorsToReport + 1
 	report := make([]string, 0, size)
 	serviceNames := make([]string, 0, len(config.Service))
 	for serviceName, _ := range config.Service {
 		serviceNames = append(serviceNames, serviceName)
 	}
-	report = append(report, fmt.Sprintf("There have been %v errors in the last %v seconds for services: %v", len(errors), config.Default.Time, serviceNames))
-	errorsToReport := config.Default.ErrorsToReport
+	report = append(report, fmt.Sprintf("There have been %v errors in the last %v seconds for services: %v", len(errors), config.Global.Time, serviceNames))
+	errorsToReport := config.Global.ErrorsToReport
 	if len(errors) < errorsToReport {
 		errorsToReport = len(errors)
 	}
@@ -61,20 +79,6 @@ func ReportErrors(config Config, errors []string) []string {
 		report = append(report, element)
 	}
 	return report
-}
-
-func CheckErrors(config Config, logLoader LogLoader) []string {
-	errors := make([]string, 0, 0)
-	for k, v := range config.Service {
-		logs, _ := logLoader.Logs(k)
-		splitLogs := strings.Split(logs, "\n")
-		for _, logMessage := range splitLogs {
-			if included(logMessage, v.Include) && !excluded(logMessage, v.Exclude) {
-				errors = append(errors, logMessage)
-			}
-		}
-	}
-	return errors
 }
 
 func included(logMessage string, includes []string) bool {

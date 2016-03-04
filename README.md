@@ -5,10 +5,10 @@ Reads the systemd journal and matches entries based on a set of include patterns
 Example configuration:
 
 ```
-[default]
+[global]
 time=6
 errorsToReport=5
-fatalNumberOfErrors=1
+alertThreshold=1
 
 [service "kube-apiserver"]
 include=: E
