@@ -12,6 +12,8 @@ import (
 
 type Default struct {
 	Time int
+	ErrorsToReport int
+	FatalNumberOfErrors int
 }
 
 type Service struct {
@@ -26,7 +28,7 @@ type Config struct {
 
 func main() {
 	var config Config
-	err := gcfg.ReadFileInto(&config, "/etc/service_log_checks.gcfg")
+	err := gcfg.ReadFileInto(&config, "/etc/owl.gcfg")
 	if err != nil {
 		fmt.Printf("Unable to read configuration file: %v", err)
 		return
@@ -34,13 +36,31 @@ func main() {
 
 	var logLoader = JournalCtrl{duration: config.Default.Time}
 	errors := CheckErrors(config, logLoader)
-	fmt.Println("There have been ", len(errors), " errors in ", config.Default.Time, " seconds.")
-	for _, element := range errors {
+	report := ReportErrors(config, errors)
+	for _, element := range report {
 		fmt.Println(element)
 	}
-	if len(errors) > 0 {
+	if len(errors) > config.Default.FatalNumberOfErrors {
 		os.Exit(-1)
 	}
+}
+
+func ReportErrors(config Config, errors []string) []string {
+	size := config.Default.ErrorsToReport + 1
+	report := make([]string, 0, size)
+	serviceNames := make([]string, 0, len(config.Service))
+	for serviceName, _ := range config.Service {
+		serviceNames = append(serviceNames, serviceName)
+	}
+	report = append(report, fmt.Sprintf("There have been %v errors in the last %v seconds for services: %v", len(errors), config.Default.Time, serviceNames))
+	errorsToReport := config.Default.ErrorsToReport
+	if len(errors) < errorsToReport {
+		errorsToReport = len(errors)
+	}
+	for _, element := range errors[0:errorsToReport] {
+		report = append(report, element)
+	}
+	return report
 }
 
 func CheckErrors(config Config, logLoader LogLoader) []string {

@@ -53,3 +53,23 @@ func TestCheckErrorsExcludeFilter(t *testing.T) {
 
 	assert.Equal(t, []string{": E error1"}, errors)
 }
+
+func TestReportErrorsLimitsErrors(t *testing.T) {
+	config := Config{Default{Time: 5, ErrorsToReport: 1}, map[string]*Service{
+		"kube-apiserver": &Service{Include: []string{": E"}, Exclude: []string{"stupid error"}},
+	}}
+
+	errors := []string{"error 1", "error 2", "error 3"}
+	report := ReportErrors(config, errors)
+
+	assert.Equal(t, []string{"There have been 3 errors in the last 5 seconds for services: [kube-apiserver]", "error 1"}, report)
+}
+
+func TestReportErrorsHandlesLessErrorsThanConfigured(t *testing.T) {
+	config := Config{Default{Time: 5, ErrorsToReport: 5}, map[string]*Service{}}
+
+	errors := []string{"error 1", "error 2", "error 3"}
+	report := ReportErrors(config, errors)
+
+	assert.Equal(t, []string{"There have been 3 errors in the last 5 seconds for services: []", "error 1", "error 2", "error 3"}, report)
+}

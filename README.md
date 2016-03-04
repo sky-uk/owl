@@ -24,5 +24,7 @@ report (print out) the last, and consider any more than 1 errors to be fatal and
 
 The printing out and non 0 exist code is useful if you are executing owl from a service like monit.
 
+The config file should be placed in `/etc/owl.gcfg`
+
 
 
