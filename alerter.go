@@ -28,7 +28,7 @@ type Config struct {
 
 func main() {
 	var config Config
-	err := gcfg.ReadFileInto(&config, "/etc/owl.gcfg")
+	err := gcfg.ReadFileInto(&config, "/etc/owl/config")
 	if err != nil {
 		fmt.Printf("Unable to read configuration file: %v", err)
 		return
