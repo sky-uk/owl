@@ -41,6 +41,32 @@ func TestCheckErrorsIncludeFilter(t *testing.T) {
 	assert.Equal(t, []string{": E error1"}, errors)
 }
 
+func TestCheckErrorsIncludeRegexFilter(t *testing.T) {
+	var services = map[string]*Service{
+		"kube-apiserver": &Service{Include: []string{": E.*blah"}},
+	}
+	config := Config{Global{Time: 5}, services}
+	journalCtrl := new(MockJournalCtl)
+	journalCtrl.On("Logs", "kube-apiserver").Return(": E error1 blah\n: E error2 nah")
+
+	errors := CheckErrors(config, journalCtrl)
+
+	assert.Equal(t, []string{": E error1 blah"}, errors)
+}
+
+func TestCheckErrorsHandlesMultipleIncludes(t *testing.T) {
+	var services = map[string]*Service{
+		"kube-apiserver": &Service{Include: []string{": E.*blah", ": E.*yah"}},
+	}
+	config := Config{Global{Time: 5}, services}
+	journalCtrl := new(MockJournalCtl)
+	journalCtrl.On("Logs", "kube-apiserver").Return(": E error1 blah\n: E error2 nah\n: E error3 yah")
+
+	errors := CheckErrors(config, journalCtrl)
+
+	assert.Equal(t, []string{": E error1 blah", ": E error3 yah"}, errors)
+}
+
 func TestCheckErrorsExcludeFilter(t *testing.T) {
 	var services = map[string]*Service{
 		"kube-apiserver": &Service{Include: []string{": E"}, Exclude: []string{"stupid error"}},
@@ -52,6 +78,33 @@ func TestCheckErrorsExcludeFilter(t *testing.T) {
 	errors := CheckErrors(config, journalCtrl)
 
 	assert.Equal(t, []string{": E error1"}, errors)
+}
+
+func TestCheckErrorsExcludeRegexFilter(t *testing.T) {
+	var services = map[string]*Service{
+		"kube-apiserver": &Service{Include: []string{": E"}, Exclude: []string{"stu.*err"}},
+	}
+	config := Config{Global{Time: 5}, services}
+	journalCtrl := new(MockJournalCtl)
+	journalCtrl.On("Logs", "kube-apiserver").Return(": E error1\nerror2\n: E stupid error")
+
+	errors := CheckErrors(config, journalCtrl)
+
+	assert.Equal(t, []string{": E error1"}, errors)
+}
+
+func TestCheckErrorsHandlesMultipleExcludes(t *testing.T) {
+	var services = map[string]*Service{
+		"kube-apiserver": &Service{Include: []string{": E"}, Exclude: []string{"stu.*err", "dum.*err"}},
+	}
+	config := Config{Global{Time: 5}, services}
+	journalCtrl := new(MockJournalCtl)
+	journalCtrl.On("Logs", "kube-apiserver").
+		Return(": E error1 fun error\nerror2\n: E stupid error\nerror3: E dumb error")
+
+	errors := CheckErrors(config, journalCtrl)
+
+	assert.Equal(t, []string{": E error1 fun error"}, errors)
 }
 
 func TestReportErrorsLimitsErrors(t *testing.T) {
