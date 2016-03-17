@@ -6,6 +6,7 @@ import (
 	"github.com/coreos/go-systemd/sdjournal"
 	"github.com/scalingdata/gcfg"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -82,17 +83,31 @@ func ReportErrors(config Config, errors []string) []string {
 }
 
 func included(logMessage string, includes []string) bool {
+	if len(includes) == 0 {
+		return true
+	}
+
 	for _, include := range includes {
-		if !strings.Contains(logMessage, include) {
-			return false
+		matched, err := regexp.MatchString(include, logMessage)
+		if err != nil {
+			panic(err)
+		}
+
+		if matched {
+			return true
 		}
 	}
-	return true
+	return false
 }
 
 func excluded(logMessage string, excludes []string) bool {
 	for _, exclude := range excludes {
-		if strings.Contains(logMessage, exclude) {
+		matched, err := regexp.MatchString(exclude, logMessage)
+		if err != nil {
+			panic(err)
+		}
+
+		if matched {
 			return true
 		}
 	}
