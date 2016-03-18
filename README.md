@@ -36,3 +36,14 @@ Needs `libsystemd` to build. On fedora:
 Dependencies are managed with `godep`. Set them up before building:
 
     godep restore
+
+## Releasing
+
+Release only from master branch.
+
+    go build
+    strip owl
+
+Then tag it and upload it to releases.
+
+    git tag 0.3.0 && git push --tags
