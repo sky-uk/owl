@@ -29,11 +29,15 @@ The config file should be placed in `/etc/owl/config`
 
 # Development
 
-Needs `libsystemd` to build. On fedora:
+Build and test with make:
+
+    make test
+
+Requires `libsystemd` to build. On fedora:
 
     dnf install -y systemd-devel
 
-Dependencies are managed with `godep`. Set them up before building:
+Golang dependencies are managed with `godep`. Set them up before building:
 
     godep restore
 
@@ -41,8 +45,7 @@ Dependencies are managed with `godep`. Set them up before building:
 
 For contributors, release only from master branch:
 
-    go build
-    strip owl
+    make release
 
 Then tag it and upload it to releases.
 
