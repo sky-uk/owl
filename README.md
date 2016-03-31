@@ -27,6 +27,16 @@ report (print out) the last, and consider any more than 1 errors to be fatal and
 
 The config file should be placed in `/etc/owl/config`
 
+# Download
+
+You can find the latest x86_64 binary at https://github.com/sky-uk/owl/releases.
+
+To install in `/usr/local/bin`:
+
+    sudo -i
+    curl -O https://github.com/sky-uk/owl/releases/download/0.4.0/owl > /usr/local/bin/owl
+    chmod u+x /usr/local/bin/owl
+
 # Development
 
 Build and test with make:
