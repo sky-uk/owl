@@ -29,12 +29,14 @@ type Config struct {
 }
 
 var configFile string
+var verbose bool
 
 func init() {
 	const (
 		defaultConfig = "/etc/owl/config"
 	)
 	flag.StringVar(&configFile, "config", defaultConfig, "owl's configuration file")
+	flag.BoolVar(&verbose, "verbose", false, "verbose logging")
 }
 
 func main() {
@@ -68,10 +70,12 @@ func logConfig(config Config) {
 
 	for name, service := range config.Service {
 		fmt.Printf("Watching [%v]\n", name)
-		fmt.Printf("Include:\n  %v", strings.Join(service.Include, "\n  "))
-		fmt.Println()
-		fmt.Printf("Exclude:\n  %v", strings.Join(service.Exclude, "\n  "))
-		fmt.Println()
+		if verbose {
+			fmt.Printf("Include:\n  %v", strings.Join(service.Include, "\n  "))
+			fmt.Println()
+			fmt.Printf("Exclude:\n  %v", strings.Join(service.Exclude, "\n  "))
+			fmt.Println()
+		}
 	}
 }
 
