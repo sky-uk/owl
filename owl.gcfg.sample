@@ -1,0 +1,7 @@
+[global]
+time=60
+errorsToReport=5
+alertThreshold=1
+
+[service "docker.service"]
+include=ERROR

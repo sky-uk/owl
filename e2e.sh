@@ -2,8 +2,18 @@
 
 echo "> Should get non-zero exit code if config is missing"
 ./owl > /dev/null 2>&1
-if [ "$?" = "0" ]; then
-    echo "Got $?"
+err=$?
+if [ "$err" = "0" ]; then
+    echo "Got $err"
+    exit -1
+fi
+
+echo "> Should run with a valid config"
+out=$(./owl -config owl.gcfg.sample 2>&1)
+err=$?
+if [ "$err" != "0" ]; then
+    echo "Exit code $err"
+    echo $out
     exit -1
 fi
 
