@@ -1,4 +1,4 @@
-![travis](https://travis-ci.org/sky-uk/owl.svg)
+![travis](https://travis-ci.org/sky-uk/owl.svg?branch=master)
 
 # OWL - Systemd journal watcher
 
