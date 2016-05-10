@@ -1,3 +1,5 @@
+![travis](https://travis-ci.org/sky-uk/owl.svg)
+
 # OWL - Systemd journal watcher
 
 Reads the systemd journal and matches entries based on a set of include patterns, e.g ERROR, and then filters out the matching entries based on an exclude list, e.g `KNOWN SILLY ERROR`.
