@@ -6,7 +6,7 @@ Reads the systemd journal and matches entries based on a set of include patterns
 
 This is intended to be used by a daemon such as [monit](https://mmonit.com/monit/). `owl` will return a non-zero exit code if the threshold of errors is met.
 
-Patterns are treated as regular expressions - see https://golang.org/pkg/regexp/ for details.
+## Configuration 
 
 Example configuration:
 
@@ -28,6 +28,28 @@ This will check errors for the `kube-apiserver` and `kube-controller-manager` se
 report (print out) the last, and consider any more than 1 errors to be fatal and exit with a non 0 exit code.
 
 The config file should be placed in `/etc/owl/config`
+
+## Pattern matching
+
+Patterns are treated as regular expressions - see https://golang.org/pkg/regexp/ for details.
+
+ - Include and exclude filters can match entries spanning multiple lines.
+   For instance an `Include: "E.*starts\n.*ends here"` will find 2 matches in the following journal logs entries:
+      
+        : E error starts
+        continues and ends here
+        : E error starts
+        and ends here
+        something else comes up
+    
+ - Only the matching portion of the journal entry is returned.
+   For instance, in the following journal entry, using `Include: ": E.*"` will return the whole journal entry line, 
+   while `Include ": E"` will only return `": E"`.
+   
+        : E error description
+   
+ - No journal entries will be matched when no includes are specified
+
 
 # Download
 
