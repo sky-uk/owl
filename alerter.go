@@ -70,12 +70,8 @@ func logConfig(config Config) {
 
 	for name, service := range config.Service {
 		fmt.Printf("Watching [%v]\n", name)
-		if verbose {
-			fmt.Printf("Include:\n  %v", strings.Join(service.Include, "\n  "))
-			fmt.Println()
-			fmt.Printf("Exclude:\n  %v", strings.Join(service.Exclude, "\n  "))
-			fmt.Println()
-		}
+		PrintlnDebug("Include:\n  %v", strings.Join(service.Include, "\n  "))
+		PrintlnDebug("Exclude:\n  %v", strings.Join(service.Exclude, "\n  "))
 	}
 }
 
@@ -157,8 +153,9 @@ type JournalCtrl struct {
 
 func (this JournalCtrl) Logs(unit string) (string, error) {
 	timeout := time.Duration(1) * time.Second
+	searchPeriod := time.Duration(-this.duration) * time.Second
 	r, err := sdjournal.NewJournalReader(sdjournal.JournalReaderConfig{
-		Since: time.Duration(-this.duration) * time.Second,
+		Since: searchPeriod,
 		Matches: []sdjournal.Match{
 			{
 				Field: sdjournal.SD_JOURNAL_FIELD_SYSTEMD_UNIT,
@@ -171,9 +168,17 @@ func (this JournalCtrl) Logs(unit string) (string, error) {
 		return "", err
 	}
 	buf := new(bytes.Buffer)
+	PrintlnDebug("Following logs since: %s", time.Now().Add(searchPeriod))
 	if err = r.Follow(time.After(timeout), buf); err != sdjournal.ErrExpired {
 		fmt.Println("Failed to follow logs from journalctl", err)
 		return "", err
 	}
 	return buf.String(), nil
+}
+
+func PrintlnDebug(message string, args ...interface{}) {
+	if verbose {
+		fmt.Printf(message, args)
+		fmt.Println()
+	}
 }
