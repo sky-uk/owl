@@ -83,11 +83,11 @@ func CheckErrors(config Config, logLoader LogLoader) []string {
 			fmt.Println("Unable to get logs for service %v, error %v", serviceName, err)
 			continue
 		}
-		splitLogs := strings.Split(logs, "\n")
-		for _, logMessage := range splitLogs {
-			if included(logMessage, filters.Include) && !excluded(logMessage, filters.Exclude) {
-				errors = append(errors, logMessage)
-			}
+
+		var patternMatcher = NewPatternMatcher(filters.Include, filters.Exclude)
+		matches := patternMatcher.FindAllMatch(logs)
+		for _, match := range matches {
+			errors = append(errors, match)
 		}
 	}
 	return errors
@@ -111,36 +111,43 @@ func ReportErrors(config Config, errors []string) []string {
 	return report
 }
 
-func included(logMessage string, includes []string) bool {
-	if len(includes) == 0 {
-		return true
-	}
-
-	for _, include := range includes {
-		matched, err := regexp.MatchString(include, logMessage)
-		if err != nil {
-			panic(err)
-		}
-
-		if matched {
-			return true
-		}
-	}
-	return false
+type PatternMatcher struct {
+	includes []*regexp.Regexp
+	excludes []*regexp.Regexp
 }
 
-func excluded(logMessage string, excludes []string) bool {
-	for _, exclude := range excludes {
-		matched, err := regexp.MatchString(exclude, logMessage)
-		if err != nil {
-			panic(err)
+func NewPatternMatcher(includes []string, excludes []string) *PatternMatcher {
+	toRegexp := func(patterns []string) []*regexp.Regexp {
+		allRegexp := make([]*regexp.Regexp, 0, len(patterns))
+		for _, pattern := range patterns {
+			allRegexp = append(allRegexp, regexp.MustCompile(pattern))
 		}
+		return allRegexp
+	}
+	return &PatternMatcher{includes: toRegexp(includes), excludes: toRegexp(excludes)}
+}
 
-		if matched {
-			return true
+func (matcher *PatternMatcher) FindAllMatch(s string) []string {
+	matches := make([]string, 0, 0)
+	for _, include := range matcher.includes {
+		for _, match := range include.FindAllString(s, -1) {
+			matches = append(matches, match)
 		}
 	}
-	return false
+
+	for _, exclude := range matcher.excludes {
+		excludedCount := 0
+		for i := range matches {
+			j := i - excludedCount
+			match := matches[j] // ensure we get the correct element taking deletes into account
+
+			if len(exclude.FindAllString(match, -1)) != 0 {
+				matches = append(matches[:j], matches[j+1:]...)
+				excludedCount++
+			}
+		}
+	}
+	return matches
 }
 
 type LogLoader interface {
