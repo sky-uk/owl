@@ -25,7 +25,7 @@ func TestCheckErrorsReturnsNothingWhenNoIncludeSpecified(t *testing.T) {
 
 	errors := CheckErrors(config, journalCtrl)
 
-	assert.Equal(t, []string{}, errors)
+	assert.Empty(t, errors)
 }
 
 func TestCheckErrorsIncludeFilter(t *testing.T) {
