@@ -1,7 +1,0 @@
-[global]
-time=3600
-errorsToReport=5
-alertThreshold=1
-
-[service "*"]
-include=.*

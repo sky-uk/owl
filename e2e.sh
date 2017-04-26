@@ -17,15 +17,6 @@ if [ "$err" != "0" ]; then
     exit -1
 fi
 
-echo "> Should return at least one log line with owl.gcfg.testfail"
-out=$(./owl -config owl.gcfg.testfail 2>&1)
-err=$?
-if [ "$err" == "0" ]; then
-    echo "Failed, exit code $err, expected to be non-zero"
-    echo $out
-    exit -1
-fi
-
 echo "> Files should be formatted"
 gofiles=$(git ls-files | grep -v Godeps | grep '.go$')
 [ -z "$gofiles" ] || unformatted=$(gofmt -l $gofiles)
