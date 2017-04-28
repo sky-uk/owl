@@ -158,14 +158,9 @@ type JournalCtrl struct {
 	duration int
 }
 
-func (this JournalCtrl) Logs(unit string) (string, error) {
-	timeout := time.Duration(1) * time.Second
-	searchPeriod := time.Duration(-this.duration) * time.Second
-
+func generateJournalMatchConfig(unit string) []sdjournal.Match {
 	var matches []sdjournal.Match
-	if unit == "*" {
-		matches = nil
-	} else {
+	if unit != "*" {
 		matches = []sdjournal.Match{
 			{
 				Field: sdjournal.SD_JOURNAL_FIELD_SYSTEMD_UNIT,
@@ -173,10 +168,16 @@ func (this JournalCtrl) Logs(unit string) (string, error) {
 			},
 		}
 	}
+	return matches
+}
+
+func (this JournalCtrl) Logs(unit string) (string, error) {
+	timeout := time.Duration(1) * time.Second
+	searchPeriod := time.Duration(-this.duration) * time.Second
 
 	r, err := sdjournal.NewJournalReader(sdjournal.JournalReaderConfig{
 		Since:   searchPeriod,
-		Matches: matches,
+		Matches: generateJournalMatchConfig(unit),
 	})
 
 	if err != nil {

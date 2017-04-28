@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/coreos/go-systemd/sdjournal"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"testing"
@@ -199,4 +200,16 @@ func TestReportErrorsHandlesLessErrorsThanConfigured(t *testing.T) {
 	report := ReportErrors(config, errors)
 
 	assert.Equal(t, []string{"There have been 3 errors in the last 5 seconds for services: []", "error 1", "error 2", "error 3"}, report)
+}
+
+func TestGenerateJournalMatchConfigShouldBeEmptyForWildcard(t *testing.T) {
+	assert.Empty(t, generateJournalMatchConfig("*"))
+}
+
+func TestGenerateJournalMatchConfigShouldBeSetToUnit(t *testing.T) {
+	matchConfigs := generateJournalMatchConfig("myservice")
+
+	assert.Len(t, matchConfigs, 1)
+	assert.Equal(t, sdjournal.SD_JOURNAL_FIELD_SYSTEMD_UNIT, matchConfigs[0].Field)
+	assert.Equal(t, "myservice", matchConfigs[0].Value)
 }
