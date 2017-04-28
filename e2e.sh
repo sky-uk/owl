@@ -12,7 +12,7 @@ echo "> Should run with a valid config"
 out=$(./owl -config owl.gcfg.sample 2>&1)
 err=$?
 if [ "$err" != "0" ]; then
-    echo "Exit code $err"
+    echo "Failed, exit code $err"
     echo $out
     exit -1
 fi

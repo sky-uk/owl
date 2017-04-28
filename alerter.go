@@ -76,7 +76,7 @@ func logConfig(config Config) {
 }
 
 func CheckErrors(config Config, logLoader LogLoader) []string {
-	errors := make([]string, 0, 0)
+	var errors []string
 	for serviceName, filters := range config.Service {
 		logs, err := logLoader.Logs(serviceName)
 		if err != nil {
@@ -158,22 +158,33 @@ type JournalCtrl struct {
 	duration int
 }
 
-func (this JournalCtrl) Logs(unit string) (string, error) {
-	timeout := time.Duration(1) * time.Second
-	searchPeriod := time.Duration(-this.duration) * time.Second
-	r, err := sdjournal.NewJournalReader(sdjournal.JournalReaderConfig{
-		Since: searchPeriod,
-		Matches: []sdjournal.Match{
+func generateJournalMatchConfig(unit string) []sdjournal.Match {
+	var matches []sdjournal.Match
+	if unit != "*" {
+		matches = []sdjournal.Match{
 			{
 				Field: sdjournal.SD_JOURNAL_FIELD_SYSTEMD_UNIT,
 				Value: unit,
 			},
-		},
+		}
+	}
+	return matches
+}
+
+func (this JournalCtrl) Logs(unit string) (string, error) {
+	timeout := time.Duration(1) * time.Second
+	searchPeriod := time.Duration(-this.duration) * time.Second
+
+	r, err := sdjournal.NewJournalReader(sdjournal.JournalReaderConfig{
+		Since:   searchPeriod,
+		Matches: generateJournalMatchConfig(unit),
 	})
+
 	if err != nil {
 		fmt.Println("Failed to read journal logs ", err)
 		return "", err
 	}
+
 	buf := new(bytes.Buffer)
 	PrintlnDebug("Following logs since: %s", time.Now().Add(searchPeriod))
 	if err = r.Follow(time.After(timeout), buf); err != sdjournal.ErrExpired {

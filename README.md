@@ -16,16 +16,20 @@ Example configuration:
     alertThreshold=1
 
     [service "kube-apiserver"]
-    include=: E
+    include=: E.*
 
     [service "kube-controller-manager"]
-    include=: E
-    include=: W
-    exclude=is forbidden:.*exceeding quota for resource memory
+    include=: E.*
+    include=: W.*
+    exclude=.*is forbidden:.*exceeding quota for resource memory
     exclude=cat
+
+    [service "*"]
+    include=.*FATAL.*
 
 This will check errors for the `kube-apiserver` and `kube-controller-manager` services in the last 6 seconds, 
 report (print out) the last, and consider any more than 1 errors to be fatal and exit with a non 0 exit code.
+It will also match any log lines with the word FATAL in it.
 
 The config file should be placed in `/etc/owl/config`
 

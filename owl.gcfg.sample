@@ -5,3 +5,6 @@ alertThreshold=1
 
 [service "docker.service"]
 include=ERROR
+
+[service "*"]
+include=0xDEADBEEF
