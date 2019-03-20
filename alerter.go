@@ -80,7 +80,7 @@ func CheckErrors(config Config, logLoader LogLoader) []string {
 	for serviceName, filters := range config.Service {
 		logs, err := logLoader.Logs(serviceName)
 		if err != nil {
-			fmt.Println("Unable to get logs for service %v, error %v", serviceName, err)
+			fmt.Printf("Unable to get logs for service %v, error %v", serviceName, err)
 			continue
 		}
 
@@ -196,7 +196,7 @@ func (this JournalCtrl) Logs(unit string) (string, error) {
 
 func PrintlnDebug(message string, args ...interface{}) {
 	if verbose {
-		fmt.Printf(message, args)
+		fmt.Printf(message, args...)
 		fmt.Println()
 	}
 }
