@@ -80,7 +80,7 @@ func CheckErrors(config Config, logLoader LogLoader) []string {
 	for serviceName, filters := range config.Service {
 		logs, err := logLoader.Logs(serviceName)
 		if err != nil {
-			fmt.Println("Unable to get logs for service %v, error %v", serviceName, err)
+			fmt.Printf("Unable to get logs for service %v, error %v\n", serviceName, err)
 			continue
 		}
 
@@ -171,13 +171,24 @@ func generateJournalMatchConfig(unit string) []sdjournal.Match {
 	return matches
 }
 
+func FormatJournalEntry(entry *sdjournal.JournalEntry) (string, error) {
+	unitName := entry.Fields["UNIT"]
+	if unitName == "" {
+		unitName = entry.Fields["_SYSTEMD_UNIT"]
+	}
+	timestamp := time.Unix(int64(entry.RealtimeTimestamp/1000000), 0)
+	return fmt.Sprintf("%s %s: %s\n", timestamp.Format(time.RFC3339),
+		unitName, entry.Fields["MESSAGE"]), nil
+}
+
 func (this JournalCtrl) Logs(unit string) (string, error) {
 	timeout := time.Duration(1) * time.Second
 	searchPeriod := time.Duration(-this.duration) * time.Second
 
 	r, err := sdjournal.NewJournalReader(sdjournal.JournalReaderConfig{
-		Since:   searchPeriod,
-		Matches: generateJournalMatchConfig(unit),
+		Formatter: FormatJournalEntry,
+		Since:     searchPeriod,
+		Matches:   generateJournalMatchConfig(unit),
 	})
 
 	if err != nil {
@@ -196,7 +207,7 @@ func (this JournalCtrl) Logs(unit string) (string, error) {
 
 func PrintlnDebug(message string, args ...interface{}) {
 	if verbose {
-		fmt.Printf(message, args)
+		fmt.Printf(message, args...)
 		fmt.Println()
 	}
 }

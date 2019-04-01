@@ -1,9 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"github.com/coreos/go-systemd/sdjournal"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"math"
 	"testing"
 )
 
@@ -212,4 +214,41 @@ func TestGenerateJournalMatchConfigShouldBeSetToUnit(t *testing.T) {
 	assert.Len(t, matchConfigs, 1)
 	assert.Equal(t, sdjournal.SD_JOURNAL_FIELD_SYSTEMD_UNIT, matchConfigs[0].Field)
 	assert.Equal(t, "myservice", matchConfigs[0].Value)
+}
+
+func TestMessageIsFormattedCorrectlyForEntryContainingUnitField(t *testing.T) {
+	verifyMessageIsFormattedCorrectly(t,
+		map[string]string{
+			"UNIT":    "cron.service",
+			"MESSAGE": "Some message",
+		},
+		"cron.service")
+}
+
+func TestMessageIsFormattedCorrectlyForEntryContainingSystemdUnitField(t *testing.T) {
+	verifyMessageIsFormattedCorrectly(t,
+		map[string]string{
+			"_SYSTEMD_UNIT": "monit.service",
+			"MESSAGE":       "Some message",
+		},
+		"monit.service")
+}
+
+func TestMessageIsFormattedCorrectlyForEntryContainingBothUnitFields(t *testing.T) {
+	verifyMessageIsFormattedCorrectly(t,
+		map[string]string{
+			"UNIT":          "apport.service",
+			"_SYSTEMD_UNIT": "init.scope",
+			"MESSAGE":       "Some message",
+		},
+		"apport.service")
+}
+
+func verifyMessageIsFormattedCorrectly(t *testing.T, journalEntryFields map[string]string, expectedUnitMsg string) {
+	entry := &sdjournal.JournalEntry{
+		RealtimeTimestamp: uint64(math.Pow10(14)),
+		Fields:            journalEntryFields,
+	}
+	msg, _ := FormatJournalEntry(entry)
+	assert.Equal(t, fmt.Sprintf("1973-03-03T09:46:40Z %s: Some message\n", expectedUnitMsg), msg)
 }

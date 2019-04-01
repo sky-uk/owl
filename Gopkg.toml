@@ -1,0 +1,11 @@
+[[constraint]]
+  name = "github.com/coreos/go-systemd"
+  version = "v19"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/scalingdata/gcfg"
+
+[prune]
+  go-tests = true
+  unused-packages = true

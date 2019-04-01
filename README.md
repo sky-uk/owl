@@ -45,13 +45,13 @@ Patterns are treated as regular expressions - see https://golang.org/pkg/regexp/
         : E error starts
         and ends here
         something else comes up
-    
+
  - Only the matching portion of the journal entry is returned.
    For instance, in the following journal entry, using `Include: ": E.*"` will return the whole journal entry line, 
    while `Include ": E"` will only return `": E"`.
    
         : E error description
-   
+
  - No journal entries will be matched when no includes are specified
 
 
@@ -61,30 +61,40 @@ You can find the latest x86_64 binary at https://github.com/sky-uk/owl/releases.
 
 To install in `/usr/local/bin`:
 
-    sudo -i
-    curl -O https://github.com/sky-uk/owl/releases/download/0.4.0/owl > /usr/local/bin/owl
-    chmod u+x /usr/local/bin/owl
+    sudo curl -sSL -o /usr/local/bin/owl https://github.com/sky-uk/owl/releases/download/0.8.0/owl && \
+    sudo chmod 755 /usr/local/bin/owl
 
 # Development
 
-Build and test with make:
+## Build with Docker
+
+    docker build . -t owl-build
+    docker run owl-build
+
+To include your local changes and save the resulting binary locally:
+
+    docker run -v $PWD:/go/src/github.com/sky-uk/owl owl-build
+
+## Build without Docker
 
     make test
 
-Requires `libsystemd` to build. On fedora:
+Prerequisites:
 
-    dnf install -y systemd-devel
-
-Golang dependencies are managed with `godep`. Set them up before building:
-
-    godep restore
+- [Go Dep](https://github.com/golang/dep)
+- `libsystemd` (Fedora: `dnf install -y systemd-devel`, Ubuntu: `apt install -y libsystemd-dev`)
 
 ## Releasing
 
 For contributors, release only from master branch:
 
+    docker build . -t owl-build
+    docker run -v $PWD:/go/src/github.com/sky-uk/owl owl-build release
+
+or
+
     make release
 
 Then tag it and upload it to releases.
 
-    git tag 0.3.0 && git push --tags
+    git tag 0.9.0 && git push --tags

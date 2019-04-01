@@ -1,11 +1,10 @@
 language: go
-dist: trusty
+dist: xenial
 sudo: required
 
 before_install:
-  - sudo add-apt-repository -y "deb http://archive.ubuntu.com/ubuntu/ vivid main universe"
   - sudo apt-get update
   - sudo apt-get install -y libsystemd-dev
 
 go:
-  - 1.5
+  - 1.12.1

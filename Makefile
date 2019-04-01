@@ -1,4 +1,4 @@
-test : owl alerter_test.go
+test : setup owl alerter_test.go
 	go test
 	./e2e.sh
 
@@ -11,4 +11,9 @@ release : owl test
 clean :
 	rm -f owl
 
-.PHONY: clean test
+setup:
+	@echo "setup"
+	@go get github.com/golang/dep/cmd/dep
+	dep ensure
+
+.PHONY: clean test setup
